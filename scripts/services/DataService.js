@@ -1,5 +1,4 @@
 const data = [
-
   {
     "id": "btc-bitcoin",
     "name": "Bitcoin",
