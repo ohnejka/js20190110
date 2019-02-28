@@ -1,6 +1,40 @@
-export default class TradeWidget {
+import Component from '../Component/Component.js';
+
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+export default class TradeWidget extends Component {
   constructor({ element }) {
-    this._el = element;
+    super({ element });
+
+    this._el.addEventListener('click', e => {
+      if (e.target.closest('#btn-cancel')) {
+        this.close();
+      }
+
+      if (e.target.closest('#btn-buy')) {
+        let buyEvent = new CustomEvent('buy', {
+          detail: {
+            item: this._currentItem,
+            amount: +this._el.querySelector('#amount').value,
+          }
+        });
+        this._el.dispatchEvent(buyEvent);
+        this.close();
+      }
+    })
+
+    this._el.addEventListener('keydown', e => {
+      if (!e.target.closest('#amount')) return;
+
+      const { key } = e;
+      
+      if (!isNumeric(key) && key !== 'Backspace') {
+        e.preventDefault();
+      }
+
+    })
 
     this._el.addEventListener('input', e => {
       if (!e.target.closest('#amount')) return;
@@ -8,7 +42,7 @@ export default class TradeWidget {
       const value = e.target.value;
       this._total = this._currentItem.price * Number(value);
 
-      this._updateDisplay(this._total);
+      this._updateDisplay(this._total)
     })
   }
 
@@ -24,7 +58,7 @@ export default class TradeWidget {
   }
 
   _updateDisplay(value) {
-    this._totalEl = this._totalEl || this._el.querySelector('#item-total');
+    this._totalEl = this._el.querySelector('#item-total');
     this._totalEl.textContent = value;
   }
 
@@ -48,8 +82,8 @@ export default class TradeWidget {
         </div>
         
         <div class="modal-footer">
-          <a href="#!" class="modal-close waves-effect waves-teal btn-flat">Buy</a>
-          <a href="#!" class="modal-close waves-effect waves-teal btn-flat">Cancel</a>
+          <a href="#!" id="btn-buy" class="modal-close waves-effect waves-teal btn-flat">Buy</a>
+          <a href="#!" id="btn-cancel" class="modal-close waves-effect waves-teal btn-flat">Cancel</a>
         </div>
     </div>
 
