@@ -4,75 +4,23 @@ const COINS_URL = 'https://api.coinpaprika.com/v1/coins';
 const getSingleCoinUrl = (id) => `https://api.coinpaprika.com/v1/coins/${id}/ohlcv/latest/`;
 
 const DataService = {
-   _sendRequest(url) {
-     let promise = new MyPromise((resolve, reject) => {
-        HttpService.sendRequest(url, data => {
-          resolve(data);
-        }, err => {
-          reject(err);
-        });
-     });
+  getCurrencies() {
+    return HttpService.sendRequest(COINS_URL)
+      .then(data => {
+        data = data.slice(0, 10);
+        const coinsUrls = data.map(coin => getSingleCoinUrl(coin.id))
+        
+        return HttpService.sendMultipleRequests(coinsUrls)
+          .then(coins => {
+            const dataWithPrice = data.map((item, index) => {
+              item.price = coins[index][0].close;
+              return item;
+            });
 
-     return promise;
-   },
+            return dataWithPrice;
+          })
 
-   getCurrencies(callback) {
-
-    let promise = this._sendRequest(COINS_URL);
-
-    promise.then(result => {
-      console.log(result)
-    }, err => {
-      console.error('2', err);
-    })
-
-    promise.catch(err => {
-      console.error(err);
-    })
-
-
-
-
-    // HttpService.sendRequest(COINS_URL, data => {
-    //   data = data.slice(0, 10);
-    //   const coinsIds = data.map(coin => coin.id);
-    //   const coinsIdMap = coinsIds.reduce((acc, id) => {
-    //     acc[getSingleCoinUrl(id)] = id;
-    //     return acc;
-    //   }, {})
-
-    //   HttpService._sendMultipleRequests(Object.keys(coinsIdMap), coins => {
-    //     const dataWithPrice = data.map(item => {
-    //       let itemUrl = getSingleCoinUrl(item.id);
-    //       let itemPriceData = coins.find(coin => coin.url === itemUrl).data[0];
-
-    //       item.price = itemPriceData.close;
-    //       return item;
-    //     });
-
-    //     callback(dataWithPrice);
-    //   })
-    // })
-  },
-  getCurrenciesPrices(data, callback) {
-    const coinsIds = data.map(coin => coin.id);
-    const coinsIdMap = coinsIds.reduce((acc, id) => {
-      acc[getSingleCoinUrl(id)] = id;
-      return acc;
-    }, {})
-
-    HttpService._sendMultipleRequests(Object.keys(coinsIdMap), coins => {
-      const dataWithPrice = data.map(item => {
-        let itemUrl = getSingleCoinUrl(item.id);
-        let itemPriceData = coins.find(coin => coin.url === itemUrl).data[0];
-
-        item.price = itemPriceData.close;
-        return item;
-      });
-
-      callback(dataWithPrice);
-    })
-
+      })
   }
 }
 
