@@ -5,28 +5,13 @@ const getSingleCoinUrl = (id) => `https://api.coinpaprika.com/v1/coins/${id}/ohl
 
 const DataService = {
    _sendRequest(url) {
-     let promise = {
-        _result: null,
-        _status: 'pending',
-        _successCallbacks: [],
-        _resolve(data) {
-          this._status = 'fulfilled';
-          this._result = data;
-          this._successCallbacks.forEach(callback => callback(data));
-        },
-
-        then(successCallback) {
-          if (this._status === 'fulfilled') { 
-            successCallback(this._result);
-          } else {
-            this._successCallbacks.push(successCallback);
-          }
-        }
-      };
-
-      HttpService.sendRequest(url, data => {
-          promise._resolve(data);
-      });
+     let promise = new MyPromise((resolve, reject) => {
+        HttpService.sendRequest(url, data => {
+          resolve(data);
+        }, err => {
+          reject(err);
+        });
+     });
 
      return promise;
    },
@@ -37,13 +22,15 @@ const DataService = {
 
     promise.then(result => {
       console.log(result)
+    }, err => {
+      console.error('2', err);
     })
 
-    setTimeout(() => {
-      promise.then(result => {
-        console.log('cb2', result)
-      })
-    }, 1000)
+    promise.catch(err => {
+      console.error(err);
+    })
+
+
 
 
     // HttpService.sendRequest(COINS_URL, data => {
@@ -67,7 +54,6 @@ const DataService = {
     //   })
     // })
   },
-
   getCurrenciesPrices(data, callback) {
     const coinsIds = data.map(coin => coin.id);
     const coinsIdMap = coinsIds.reduce((acc, id) => {
@@ -89,5 +75,47 @@ const DataService = {
 
   }
 }
+
+class MyPromise {
+  constructor(behaviourFunction) {
+    this._result = null
+    this._status = 'pending'
+    this._successCallbacks = []
+    this._errorCallbacks = []
+
+    behaviourFunction(this._resolve.bind(this), this._reject.bind(this));
+  }
+
+  _resolve(data) {
+    this._status = 'fulfilled';
+    this._result = data;
+    this._successCallbacks.forEach(callback => callback(data));
+  }
+
+  _reject(error) {
+    this._status = 'rejected';
+    this._result = error;
+    this._errorCallbacks.forEach(callback => callback(error));
+  }
+
+  then(successCallback, errorCallback) {
+    if (this._status === 'fulfilled') { 
+      successCallback(this._result);
+    } else if (this._status === 'rejected') { 
+      errorCallback(this._result);
+    } else {
+      this._successCallbacks.push(successCallback);
+      this._errorCallbacks.push(errorCallback);
+    }
+  }
+
+  catch(errorCallback) {
+    if (this._status === 'rejected') { 
+      errorCallback(this._result);
+    } else {
+      this._errorCallbacks.push(errorCallback);
+    }
+  }
+};
 
 export default DataService;
