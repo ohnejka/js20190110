@@ -4,9 +4,13 @@ export default class Table extends Component {
   constructor({ element, data }) {
     super({ element });
 
-    this._render(data);
+    this.displayData(data);
 
     this._el.addEventListener('click', e => this._onRowClick(e));
+  }
+
+  displayData(data) {
+    this._render(data);
   }
 
   _onRowClick(e) {
