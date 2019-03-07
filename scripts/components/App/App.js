@@ -11,17 +11,21 @@ export default class App {
 
     this._render();
 
-    DataService.getCurrencies().then(data => {
-      this._data = data;
-      this._initTable(data);
-    })
-
     this._initPortfolio();
     this._initTradeWidget();
     this._initFilter();
+    this._initTable();
+    console.log('here')
   }
 
-  _initTable(data) {
+  async _initTable() {
+    // DataService.getCurrencies().then(data => {
+    //   this._data = data;
+    //   this._initTable(data);
+    // })
+    let data = await DataService.getCurrencies();
+    this._data = data;
+
     this._table = new Table({
       data,
       element: this._el.querySelector('[data-element="table"]'),

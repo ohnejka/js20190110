@@ -4,23 +4,41 @@ const COINS_URL = 'https://api.coinpaprika.com/v1/coins';
 const getSingleCoinUrl = (id) => `https://api.coinpaprika.com/v1/coins/${id}/ohlcv/latest/`;
 
 const DataService = {
-  getCurrencies() {
-    return HttpService.sendRequest(COINS_URL)
-      .then(data => {
-        data = data.slice(0, 10);
-        const coinsUrls = data.map(coin => getSingleCoinUrl(coin.id))
+  async getCurrencies() {
+    try {
+      let data = await HttpService.sendRequest(COINS_URL);
+      console.log(data)
+      data = data.slice(0, 10);
+      const coinsUrls = data.map(coin => getSingleCoinUrl(coin.id));
+
+      const coinsPrices = await HttpService.sendMultipleRequests(coinsUrls);
+      const dataWithPrice = data.map((item, index) => {
+        item.price = coinsPrices[index][0].close;
+        return item;
+      });
+
+      return dataWithPrice;
+    } catch(e) {
+      console.log(e)
+    }
+
+
+    // return HttpService.sendRequest(COINS_URL)
+    //   .then(data => {
+    //     data = data.slice(0, 10);
+    //     const coinsUrls = data.map(coin => getSingleCoinUrl(coin.id))
         
-        return HttpService.sendMultipleRequests(coinsUrls)
-          .then(coins => {
-            const dataWithPrice = data.map((item, index) => {
-              item.price = coins[index][0].close;
-              return item;
-            });
+    //     return HttpService.sendMultipleRequests(coinsUrls)
+    //       .then(coins => {
+    //         const dataWithPrice = data.map((item, index) => {
+    //           item.price = coins[index][0].close;
+    //           return item;
+    //         });
 
-            return dataWithPrice;
-          })
+    //         return dataWithPrice;
+    //       })
 
-      })
+    //   })
   }
 }
 
