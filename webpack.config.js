@@ -1,4 +1,10 @@
 const path = require('path');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+
+
+const isProduction = process.env.NODE_ENV === 'production';
+
 
 module.exports = {
   entry: './scripts/index.js',
@@ -8,7 +14,6 @@ module.exports = {
   },
   mode: 'none',
   devtool: 'source-map',
-  watch: true,
   devServer: {
     contentBase: './public'
   },
@@ -30,6 +35,13 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       }
     ]
-  }
+  },
+  plugins: [
+    new UglifyJsPlugin({ sourceMap: !isProduction }),
+    new CopyWebpackPlugin([
+      { from: './index.html' },
+      { from: './index.css' }
+    ])
+  ]
   
 };
