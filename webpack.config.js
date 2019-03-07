@@ -9,6 +9,9 @@ module.exports = {
   mode: 'none',
   devtool: 'source-map',
   watch: true,
+  devServer: {
+    contentBase: './public'
+  },
   module: {
     rules: [
       {
@@ -21,6 +24,10 @@ module.exports = {
             plugins: ['@babel/plugin-transform-runtime']
           }
         }
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
       }
     ]
   }

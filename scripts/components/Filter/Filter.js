@@ -1,3 +1,4 @@
+import './Filter.css';
 import Component from '../Component/Component.js';
 
 export default class Filter extends Component {
